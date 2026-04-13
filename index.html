@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jawbha</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Jawbha</h1>
+  </header>
+
+  <main>
+    <div id="message"></div>
+
+    <div id="grid"></div>
+
+    <div id="keyboard"></div>
+
+    <button id="new-game-btn">New Game</button>
+  </main>
+
+  <script src="game.js"></script>
+  <script>
+    // ── DOM helpers ────────────────────────────────────────────────
+    const gridEl   = document.getElementById('grid');
+    const keyboardEl = document.getElementById('keyboard');
+    const messageEl = document.getElementById('message');
+    const newGameBtn = document.getElementById('new-game-btn');
+
+    // ── Keyboard layout ──────────────────────────────────────────
+    const KB_ROWS = [
+      ['q','w','e','r','t','y','u','i','o','p'],
+      ['a','s','d','f','g','h','j','k','l'],
+      ['Enter','z','x','c','v','b','n','m','Backspace'],
+    ];
+
+    // ── State ────────────────────────────────────────────────────
+    let gameState;
+    let currentInput = [];
+    let keyEls = {};
+
+    // ── Init ─────────────────────────────────────────────────────
+    function buildGrid() {
+      gridEl.innerHTML = '';
+      for (let r = 0; r < MAX_GUESSES; r++) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.id = `row-${r}`;
+        for (let c = 0; c < WORD_LENGTH; c++) {
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          tile.id = `tile-${r}-${c}`;
+          row.appendChild(tile);
+        }
+        gridEl.appendChild(row);
+      }
+    }
+
+    function buildKeyboard() {
+      keyboardEl.innerHTML = '';
+      keyEls = {};
+      KB_ROWS.forEach(row => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'kb-row';
+        row.forEach(key => {
+          const btn = document.createElement('button');
+          btn.textContent = key === 'Backspace' ? '⌫' : key;
+          btn.className = 'key' + (key.length > 1 ? ' wide' : '');
+          btn.dataset.key = key;
+          btn.addEventListener('click', () => handleKey(key));
+          rowEl.appendChild(btn);
+          keyEls[key.toLowerCase()] = btn;
+        });
+        keyboardEl.appendChild(rowEl);
+      });
+    }
+
+    function startGame() {
+      gameState = createGame();
+      currentInput = [];
+      buildGrid();
+      buildKeyboard();
+      showMessage('');
+      newGameBtn.style.display = 'none';
+    }
+
+    // ── Input handling ───────────────────────────────────────────
+    function handleKey(key) {
+      if (gameState.status !== 'playing') return;
+
+      if (key === 'Enter') {
+        submitCurrentGuess();
+      } else if (key === 'Backspace') {
+        currentInput.pop();
+        renderCurrentRow();
+      } else if (/^[a-zA-Z]$/.test(key) && currentInput.length < WORD_LENGTH) {
+        currentInput.push(key.toLowerCase());
+        renderCurrentRow();
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        handleKey('Enter');
+      } else if (e.key === 'Backspace') {
+        handleKey('Backspace');
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        handleKey(e.key);
+      }
+    });
+
+    // ── Rendering ────────────────────────────────────────────────
+    function renderCurrentRow() {
+      const rowIdx = gameState.guesses.length;
+      for (let c = 0; c < WORD_LENGTH; c++) {
+        const tile = document.getElementById(`tile-${rowIdx}-${c}`);
+        const letter = currentInput[c] || '';
+        tile.textContent = letter;
+        tile.className = 'tile' + (letter ? ' filled' : '');
+      }
+    }
+
+    function revealRow(rowIdx, result) {
+      return new Promise(resolve => {
+        result.forEach((tile, c) => {
+          const tileEl = document.getElementById(`tile-${rowIdx}-${c}`);
+          setTimeout(() => {
+            tileEl.classList.add('reveal');
+            tileEl.style.animationDelay = '0.25s';
+            setTimeout(() => {
+              tileEl.classList.remove('reveal');
+              tileEl.className = `tile ${tile.state}`;
+              tileEl.textContent = tile.letter;
+            }, 250);
+          }, c * 300);
+        });
+        setTimeout(resolve, result.length * 300 + 300);
+      });
+    }
+
+    function updateKeyboard(result) {
+      // Priority: correct > present > absent
+      const priority = { correct: 3, present: 2, absent: 1 };
+      result.forEach(({ letter, state }) => {
+        const btn = keyEls[letter];
+        if (!btn) return;
+        const current = btn.className.match(/correct|present|absent/)?.[0];
+        if (!current || priority[state] > priority[current]) {
+          btn.classList.remove('correct', 'present', 'absent');
+          btn.classList.add(state);
+        }
+      });
+    }
+
+    // ── Game flow ────────────────────────────────────────────────
+    async function submitCurrentGuess() {
+      const guess = currentInput.join('');
+
+      if (guess.length < WORD_LENGTH) {
+        showMessage('Not enough letters', 1200);
+        shakeRow(gameState.guesses.length);
+        return;
+      }
+
+      try {
+        const prevGuessCount = gameState.guesses.length;
+        gameState = submitGuess(gameState, guess);
+        currentInput = [];
+
+        const result = gameState.results[prevGuessCount];
+        await revealRow(prevGuessCount, result);
+        updateKeyboard(result);
+
+        if (gameState.status === 'won') {
+          const msgs = ['Genius!', 'Magnificent!', 'Impressive!', 'Splendid!', 'Great!', 'Phew!'];
+          showMessage(msgs[prevGuessCount] || 'Nice!');
+          newGameBtn.style.display = 'inline-block';
+        } else if (gameState.status === 'lost') {
+          showMessage(gameState.target.toUpperCase(), 0);
+          newGameBtn.style.display = 'inline-block';
+        }
+      } catch (err) {
+        showMessage(err.message, 1200);
+        shakeRow(gameState.guesses.length);
+      }
+    }
+
+    function shakeRow(rowIdx) {
+      const row = document.getElementById(`row-${rowIdx}`);
+      row.style.animation = 'none';
+      row.offsetHeight; // reflow
+      row.style.animation = 'shake 0.5s ease';
+    }
+
+    let messageTimer = null;
+    function showMessage(text, duration = 0) {
+      messageEl.textContent = text;
+      if (messageTimer) clearTimeout(messageTimer);
+      if (duration > 0) {
+        messageTimer = setTimeout(() => { messageEl.textContent = ''; }, duration);
+      }
+    }
+
+    // ── Kick off ─────────────────────────────────────────────────
+    newGameBtn.addEventListener('click', startGame);
+    startGame();
+  </script>
+
+  <style>
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-4px); }
+      40%       { transform: translateX(4px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+  </style>
+</body>
+</html>
