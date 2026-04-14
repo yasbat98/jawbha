@@ -124,19 +124,25 @@
 
     function revealRow(rowIdx, result) {
       return new Promise(resolve => {
-        result.forEach((tile, c) => {
+        result.forEach(({ letter, state }, c) => {
           const tileEl = document.getElementById(`tile-${rowIdx}-${c}`);
           setTimeout(() => {
-            tileEl.classList.add('reveal');
-            tileEl.style.animationDelay = '0.25s';
+            // Phase 1: flip out (0° → -90°, tile becomes edge-on)
+            tileEl.classList.add('flip-out');
             setTimeout(() => {
-              tileEl.classList.remove('reveal');
-              tileEl.className = `tile ${tile.state}`;
-              tileEl.textContent = tile.letter;
+              // Mid-point: tile is invisible — swap colour and letter
+              tileEl.classList.remove('flip-out');
+              tileEl.className = `tile ${state} flip-in`;
+              tileEl.textContent = letter;
+              // Phase 2: flip in (-90° → 0°, coloured tile appears)
+              setTimeout(() => {
+                tileEl.classList.remove('flip-in');
+              }, 250);
             }, 250);
           }, c * 300);
         });
-        setTimeout(resolve, result.length * 300 + 300);
+        // Resolve after last tile finishes both halves
+        setTimeout(resolve, (result.length - 1) * 300 + 500);
       });
     }
 
@@ -160,6 +166,12 @@
 
       if (guess.length < WORD_LENGTH) {
         showMessage('Not enough letters', 1200);
+        shakeRow(gameState.guesses.length);
+        return;
+      }
+
+      if (!isValidWord(guess)) {
+        showMessage('Not in word list', 1200);
         shakeRow(gameState.guesses.length);
         return;
       }

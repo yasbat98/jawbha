@@ -103,15 +103,18 @@ main {
   100% { transform: scale(1); }
 }
 
-@keyframes flip {
+@keyframes flip-out {
   0%   { transform: rotateX(0deg); }
-  50%  { transform: rotateX(-90deg); }
+  100% { transform: rotateX(-90deg); }
+}
+
+@keyframes flip-in {
+  0%   { transform: rotateX(-90deg); }
   100% { transform: rotateX(0deg); }
 }
 
-.tile.reveal {
-  animation: flip 0.5s ease forwards;
-}
+.tile.flip-out { animation: flip-out 0.25s ease-in  forwards; }
+.tile.flip-in  { animation: flip-in  0.25s ease-out forwards; }
 
 /* ── Keyboard ── */
 #keyboard {
