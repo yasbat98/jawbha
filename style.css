@@ -75,6 +75,7 @@ main {
   text-transform: uppercase;
   user-select: none;
   transition: border-color 0.1s;
+  perspective: 250px;
 }
 
 .tile.filled {

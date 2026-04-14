@@ -40,6 +40,7 @@
     let gameState;
     let currentInput = [];
     let keyEls = {};
+    let isAnimating = false;
 
     // ── Init ─────────────────────────────────────────────────────
     function buildGrid() {
@@ -162,6 +163,8 @@
 
     // ── Game flow ────────────────────────────────────────────────
     async function submitCurrentGuess() {
+      if (isAnimating) return;
+
       const guess = currentInput.join('');
 
       if (guess.length < WORD_LENGTH) {
@@ -177,6 +180,7 @@
       }
 
       try {
+        isAnimating = true;
         const prevGuessCount = gameState.guesses.length;
         gameState = submitGuess(gameState, guess);
         currentInput = [];
@@ -184,6 +188,7 @@
         const result = gameState.results[prevGuessCount];
         await revealRow(prevGuessCount, result);
         updateKeyboard(result);
+        isAnimating = false;
 
         if (gameState.status === 'won') {
           const msgs = ['Genius!', 'Magnificent!', 'Impressive!', 'Splendid!', 'Great!', 'Phew!'];
@@ -194,6 +199,7 @@
           newGameBtn.style.display = 'inline-block';
         }
       } catch (err) {
+        isAnimating = false;
         showMessage(err.message, 1200);
         shakeRow(gameState.guesses.length);
       }
