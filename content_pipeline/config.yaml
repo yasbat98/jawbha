@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────
+# CONTENT PIPELINE CONFIGURATION
+# Fill in every value before running pipeline.py
+# ─────────────────────────────────────────────
+
+# ── API Keys ──────────────────────────────────
+api_keys:
+  fal_ai: "YOUR_FAL_AI_API_KEY"
+  elevenlabs: "YOUR_ELEVENLABS_API_KEY"
+
+# ── Content ───────────────────────────────────
+content:
+  topic: "peanut butter as a luxury ingredient"   # <-- change this
+  num_images: 5
+
+# ── Your Visual Style ─────────────────────────
+style:
+  aesthetic: "editorial dark minimal"             # e.g. editorial / dark / minimal / vibrant
+  color_palette: "cream, caramel, matte black"    # your go-to colors
+  photography_style: "cinematic product"          # cinematic / UGC / product / etc.
+  lighting: "dramatic side lighting with soft shadows"
+  fal_model: "fal-ai/flux/dev"                   # fal.ai model ID
+
+# ── Caption Settings ──────────────────────────
+caption:
+  tone: "provocative and minimal"                 # casual / professional / provocative
+  hook_style: "statement"                         # question / statement / challenge
+  always_use: ["elevated", "intentional"]         # words you always use
+  never_use: ["amazing", "awesome", "guys"]       # words you never use
+  max_length: 150                                 # characters
+
+# ── Voiceover Settings ────────────────────────
+voiceover:
+  elevenlabs_voice_id: "YOUR_VOICE_ID"            # find at elevenlabs.io/voice-lab
+  model_id: "eleven_multilingual_v2"
+  stability: 0.5
+  similarity_boost: 0.75
+  style: 0.4
+  speed: 1.0
+
+# ── Output ────────────────────────────────────
+output:
+  folder: "output"                                # relative to this script
+  image_format: "jpg"
+  audio_format: "mp3"
