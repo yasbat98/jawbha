@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jawbha – Studio Video</title>
+  <link rel="stylesheet" href="../../style.css" />
+  <style>
+    .studio-container {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      text-align: center;
+    }
+    .studio-container h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+    }
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      background: #121213;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .video-wrapper iframe,
+    .video-wrapper video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .video-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #818384;
+      font-size: 1rem;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: #538d4e;
+      text-decoration: none;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Jawbha</h1>
+  </header>
+
+  <main class="studio-container">
+    <h2>How to Play</h2>
+    <div class="video-wrapper">
+      <div class="video-placeholder">Video coming soon</div>
+    </div>
+    <a class="back-link" href="../../index.html">← Back to Game</a>
+  </main>
+</body>
+</html>
